@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Horarios del Antiguo en tu hora local</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 1em;
+    }
+  </style>
+</head>
+<body>
+  <h1>Horarios del Antiguo (hora local)</h1>
+  <p id="zona"></p>
+  <ul id="event-list"></ul>
+
+  <script>
+    const eventos = [
+      { nombre: "Antiguo 1", hora: "2025-05-21T20:00:00+01:00" },
+      { nombre: "Antiguo 2", hora: "2025-05-21T22:00:00+01:00" },
+      { nombre: "Antiguo 3", hora: "2025-05-22T16:00:00+01:00" }
+    ];
+
+    const zonaUsuario = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    document.getElementById("zona").textContent = `Tu zona horaria: ${zonaUsuario}`;
+
+    const lista = document.getElementById("event-list");
+
+    eventos.forEach(evento => {
+      const horaEvento = new Date(evento.hora);
+
+      const horaLocal = horaEvento.toLocaleTimeString(undefined, {
+        timeZone: zonaUsuario,
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+
+      const li = document.createElement("li");
+      li.textContent = `${evento.nombre}: ${horaLocal}`;
+      lista.appendChild(li);
+    });
+  </script>
+</body>
+</html>
