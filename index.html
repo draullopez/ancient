@@ -1,73 +1,83 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Eventos en tu hora local</title>
+  <title>Stormriders Events</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     body {
-      padding: 0;
+      padding-top: 20px; /* espacio para el marcador fijo */
       margin: 0;
       background: #000;
-      color: #ffffff;
+      color: #fff;
     }
     .list-group-item {
       background-color: #1e1e1e;
-      color: #ffffff;
-      border-color: #333;
-    }
-    .list-group-item strong {
       color: #fff;
+      border-color: #333;
     }
     .contador {
       font-weight: bold;
-      color: #dc3545;
     }
     .text-muted {
       color: #888 !important;
     }
     h1, h2, h3, h4, p {
-      color: #ffffff;
+      color: #fff;
     }
     .lead {
-      color: #cccccc;
+      color: #ccc;
+    }
+    .sticky-timezone {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      z-index: 1000;
+      background-color: #111;
+      padding: 10px 15px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.7);
+    }
+    .event-header img {
+      max-width: 100%;
+      height: auto;
     }
   </style>
 </head>
 <body>
+
+  <!-- Zona horaria sticky -->
+  <div class="sticky-timezone d-flex justify-content-between align-items-center">
+    <span>Your timezone: <strong id="zona"></strong></span>
+    <span>Current time: <strong id="hora-actual"></strong></span>
+  </div>
+
   <div class="container">
-    <!-- Cabecera con fondo -->
-    <div class="text-center" style="background: url(cabecera1.jpg) no-repeat center center; background-size: cover; min-height: 400px; padding-top: 150px">
-      <div class="mt-5 pt-5 text-center text-light">
-        <h1 class="display-4">[SYN] - The Syndicate</h1>
-        <p class="display-6">Stormriders Events</p>
+    <!-- Header -->
+    <div class="text-center event-header my-4" style="background: url(cabecera1.jpg) no-repeat center center; background-size: cover; min-height: 400px; padding-top: 20px">>
+      <img src="syn.png" class="img-fluid rounded shadow mb-3" alt="[SYN] Logo">
+      <h1 class="display-4">[SYN] - The Syndicate</h1>
+      <p class="display-6">Stormriders Events</p>
+    </div>
+
+    <!-- Section: Acients -->
+    <h2 class="mb-3">Acients</h2>
+    <div class="row g-3 align-items-center mb-5">
+      <div class="col-md-6">
+        <img src="acients.jpg" class="img-fluid rounded shadow" alt="Acients">
       </div>
-    </div>
-
-    <!-- Zona horaria y hora actual -->
-    <div class="my-4">
-      <p class="lead">Tu zona horaria: <span id="zona"></span></p>
-      <p>Hora actual: <span id="hora-actual" class="fw-bold"></span></p>
-    </div>
-
-    <!-- Sección Acients -->
-    <div class="row g-0 align-items-center mb-5">
-      <div class="col-6">
-        <h2 class="text-primary">🔵 Acients</h2>
+      <div class="col-md-6">
         <ul class="list-group" id="acients-list"></ul>
       </div>
-      <div class="col-6 text-center">
-        <img src="acients.jpg" width="600" height="315" class="img-fluid rounded shadow" alt="Acients Image" />
-      </div>
     </div>
 
-    <!-- Sección CP RUN -->
-    <div class="row g-0 align-items-center mb-5">
-      <div class="col-6 text-center">
-        <img src="cprun.jpg" width="600" height="315" class="img-fluid rounded shadow" alt="CP RUN Image" />
+    <!-- Section: CP RUN -->
+    <h2 class="mb-3">CP RUN</h2>
+    <div class="row g-3 align-items-center mb-5">
+      <div class="col-md-6">
+        <img src="cprun.jpg" class="img-fluid rounded shadow" alt="CP RUN">
       </div>
-      <div class="col-6">
-        <h2 class="text-success">🟢 CP RUN</h2>
+      <div class="col-md-6">
         <ul class="list-group" id="cprun-list"></ul>
       </div>
     </div>
@@ -77,7 +87,6 @@
     const zonaUsuario = Intl.DateTimeFormat().resolvedOptions().timeZone;
     document.getElementById("zona").textContent = zonaUsuario;
 
-    // Mostrar hora actual cada segundo
     function actualizarHoraActual() {
       const ahora = new Date();
       document.getElementById("hora-actual").textContent = ahora.toLocaleTimeString(undefined, {
@@ -90,7 +99,6 @@
     setInterval(actualizarHoraActual, 1000);
     actualizarHoraActual();
 
-    // CSV público de Google Sheets
     const urlCSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTobKEUU8weWVmyITWJzN0JWuefFDN99phg2HVsoymKtnHjNoZXmq4_qobm3Gc4OCHgLxz_taFIWW4n/pub?gid=1545690106&single=true&output=csv";
 
     fetch(urlCSV)
@@ -98,11 +106,14 @@
       .then(data => {
         const rows = data.trim().split("\n").slice(1);
         const eventos = rows.map(row => {
-          const [nombre, hora, tipo] = row.split(",");
+          const [name, date, time, duration, notes, type] = row.split(",");
           return {
-            nombre: nombre.trim(),
-            hora: hora.trim(),
-            tipo: tipo.trim().toLowerCase()
+            name: name.trim(),
+            date: date.trim(),
+            time: time.trim(),
+            duration: parseFloat(duration.trim()),
+            notes: notes.trim(),
+            type: type.trim().toLowerCase()
           };
         });
 
@@ -110,48 +121,59 @@
         const cprunList = document.getElementById("cprun-list");
 
         eventos.forEach((evento, index) => {
-          const horaEvento = new Date("2025-05-21T" + evento.hora + "+01:00");
-          const horaLocal = horaEvento.toLocaleTimeString(undefined, {
+          function normalizarHora(horaStr) {
+            const [h, m = "00", s = "00"] = horaStr.split(":");
+            return `${h.padStart(2, "0")}:${m.padStart(2, "0")}:${s.padStart(2, "0")}`;
+          }
+
+          const horaNormalizada = normalizarHora(evento.time);
+          const horaInicioUTC = new Date(`${evento.date}T${horaNormalizada}+01:00`);
+          const horaFinUTC = new Date(horaInicioUTC.getTime() + evento.duration * 3600000);
+
+          const horaLocal = horaInicioUTC.toLocaleTimeString(undefined, {
             timeZone: zonaUsuario,
             hour: '2-digit',
             minute: '2-digit'
           });
 
           const li = document.createElement("li");
-          li.className = "list-group-item d-flex justify-content-between align-items-center";
+          li.className = "list-group-item";
           li.innerHTML = `
             <div>
-              <strong>${evento.nombre}</strong><br>
-              Hora local: ${horaLocal}<br>
-              <span class="contador" id="contador-${index}">Cargando...</span>
+              <strong>${evento.name}</strong><br>
+              Local time: ${horaLocal}<br>
+              <span id="contador-${index}" class="contador">Loading...</span><br>
+              ${evento.notes ? `<small class="text-muted">📝 ${evento.notes}</small>` : ""}
             </div>
           `;
 
-          // Separar por tipo
-          if (evento.tipo === "acients") {
+          if (evento.type === "acients") {
             acientsList.appendChild(li);
-          } else if (evento.tipo === "cp run") {
+          } else if (evento.type === "cp run") {
             cprunList.appendChild(li);
           }
 
-          // Contador regresivo
           function actualizarContador() {
             const ahora = new Date();
-            const diff = horaEvento - ahora;
             const el = document.getElementById(`contador-${index}`);
 
-            if (diff <= 0) {
-              el.textContent = "¡Ya comenzó!";
-              el.classList.remove("text-danger");
-              el.classList.add("text-muted");
-              return;
+            if (ahora < horaInicioUTC) {
+              const diff = horaInicioUTC - ahora;
+              const h = Math.floor(diff / (1000 * 60 * 60));
+              const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+              const s = Math.floor((diff % (1000 * 60)) / 1000);
+              el.textContent = `⏳ Starts in ${h}h ${m}m ${s}s`;
+              el.className = "contador text-warning";
+            } else if (ahora >= horaInicioUTC && ahora <= horaFinUTC) {
+              const diff = horaFinUTC - ahora;
+              const m = Math.floor(diff / (1000 * 60));
+              const s = Math.floor((diff % (1000 * 60)) / 1000);
+              el.textContent = `🟢 Ongoing – ${m}m ${s}s left`;
+              el.className = "contador text-success";
+            } else {
+              el.textContent = `🔴 Finished`;
+              el.className = "contador text-muted";
             }
-
-            const horas = Math.floor(diff / (1000 * 60 * 60));
-            const minutos = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-            const segundos = Math.floor((diff % (1000 * 60)) / 1000);
-
-            el.textContent = `Faltan ${horas}h ${minutos}m ${segundos}s`;
           }
 
           setInterval(actualizarContador, 1000);
@@ -159,8 +181,9 @@
         });
       })
       .catch(err => {
-        console.error("Error al cargar eventos:", err);
+        console.error("Error loading events:", err);
       });
   </script>
+
 </body>
 </html>
